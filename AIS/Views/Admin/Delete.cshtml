@@ -1,0 +1,72 @@
+@model AIS.ViewModels.Admin.UserDeleteViewModel
+@{
+    ViewData["Title"] = "Удаление сотрудника";
+}
+
+<div class="mx-auto max-w-3xl">
+    <div class="rounded-[2rem] border border-rose-200/80 bg-white/92 p-8 shadow-soft dark:border-rose-950 dark:bg-slate-900/92 sm:p-10">
+        <div class="mb-8">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-rose-500">Подтверждение удаления</p>
+            <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Удалить сотрудника?</h1>
+            <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                Это действие удалит учетную запись сотрудника и связанную с ней историю смен.
+            </p>
+        </div>
+
+        <div class="grid gap-4 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-950/80 md:grid-cols-2">
+            <div>
+                <p class="text-sm text-slate-500 dark:text-slate-400">ФИО</p>
+                <p class="mt-1 text-lg font-semibold text-slate-950 dark:text-white">@Model.FullName</p>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Логин</p>
+                <p class="mt-1 text-lg font-semibold text-slate-950 dark:text-white">@Model.Username</p>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Роль</p>
+                <p class="mt-1 text-lg font-semibold text-slate-950 dark:text-white">@Model.Role.GetDisplayName()</p>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Смен в истории</p>
+                <p class="mt-1 text-lg font-semibold text-slate-950 dark:text-white">@Model.ShiftsCount</p>
+            </div>
+        </div>
+
+        @if (Model.IsCurrentUser)
+        {
+            <div class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-950 dark:bg-amber-950/50 dark:text-amber-200">
+                Текущую учетную запись удалить нельзя.
+            </div>
+        }
+
+        @if (Model.IsLastAdmin)
+        {
+            <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-950 dark:bg-amber-950/50 dark:text-amber-200">
+                Это последний администратор системы. Удаление заблокировано для предотвращения потери доступа.
+            </div>
+        }
+
+        @if (Model.IsOnShift)
+        {
+            <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-950 dark:bg-rose-950/50 dark:text-rose-200">
+                Сотрудник находится на активной смене. При удалении эта смена также будет удалена.
+            </div>
+        }
+
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            @if (!Model.IsCurrentUser && !Model.IsLastAdmin)
+            {
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
+                        Удалить сотрудника
+                    </button>
+                </form>
+            }
+
+            <a asp-action="Index" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white">
+                Вернуться в список
+            </a>
+        </div>
+    </div>
+</div>
