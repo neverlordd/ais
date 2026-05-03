@@ -1,6 +1,15 @@
 var root = document.documentElement;
+var themeStorageKey = "ais-theme";
 
 function getInitialTheme() {
+    try {
+        var savedTheme = localStorage.getItem(themeStorageKey);
+        if (savedTheme === "dark" || savedTheme === "light") {
+            return savedTheme;
+        }
+    } catch (error) {
+    }
+
     return "light";
 }
 
@@ -16,6 +25,49 @@ function setTheme(theme, save) {
     }
 
     root.setAttribute("data-theme", theme);
+
+    if (save) {
+        try {
+            localStorage.setItem(themeStorageKey, theme);
+        } catch (error) {
+        }
+    }
+
+    syncThemeToggleIcons(theme);
+}
+
+function syncThemeToggleIcons(theme) {
+    var desktopIcon = document.querySelector("[data-theme-icon]");
+    var mobileIcon = document.querySelector("[data-theme-icon-mobile]");
+    var icon = theme === "dark" ? "☀" : "☾";
+
+    if (desktopIcon) {
+        desktopIcon.textContent = icon;
+    }
+
+    if (mobileIcon) {
+        mobileIcon.textContent = icon;
+    }
+}
+
+function setupThemeToggle() {
+    var toggleButtons = [
+        document.getElementById("theme-toggle"),
+        document.getElementById("theme-toggle-mobile")
+    ];
+
+    for (var i = 0; i < toggleButtons.length; i++) {
+        var button = toggleButtons[i];
+
+        if (!button) {
+            continue;
+        }
+
+        button.onclick = function () {
+            var nextTheme = root.classList.contains("dark") ? "light" : "dark";
+            setTheme(nextTheme, true);
+        };
+    }
 }
 
 function padTime(value) {
@@ -115,6 +167,7 @@ function setupMobileMenu() {
 
 document.addEventListener("DOMContentLoaded", function () {
     setTheme(getInitialTheme(), false);
+    setupThemeToggle();
     setupMobileMenu();
     setupShiftTimers();
     setupLiveClocks();
