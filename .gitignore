@@ -1,0 +1,13 @@
+.DS_Store
+
+# .NET build artifacts
+bin/
+obj/
+
+# Local SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# User-local VS Code files
+.vscode/*.log

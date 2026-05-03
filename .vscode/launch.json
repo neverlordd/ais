@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch ShiftLine",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-shiftline",
+      "program": "${workspaceFolder}/AIS/bin/Debug/net9.0/AIS.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/AIS",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    }
+  ]
+}
