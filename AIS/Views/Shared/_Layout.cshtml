@@ -57,22 +57,17 @@
     <script>
         (function () {
             var root = document.documentElement;
-            var savedTheme = null;
 
             try {
-                savedTheme = localStorage.getItem("ais-theme");
+                localStorage.removeItem("ais-theme");
+                localStorage.removeItem("ais-theme-v2");
+                localStorage.removeItem("ais-theme-v3");
+                sessionStorage.removeItem("ais-theme");
             } catch (error) {
-                savedTheme = null;
             }
 
-            if (savedTheme === "dark") {
-                root.classList.add("dark");
-                root.dataset.theme = "dark";
-            } else {
-                root.classList.remove("dark");
-                root.dataset.theme = "light";
-            }
-
+            root.classList.remove("dark");
+            root.dataset.theme = "light";
             root.dataset.themeReady = "true";
         })();
     </script>
