@@ -1,39 +1,23 @@
 var root = document.documentElement;
-var themeStorageKey = "ais-theme";
 
 function getInitialTheme() {
-    try {
-        var savedTheme = localStorage.getItem(themeStorageKey);
-        if (savedTheme === "dark" || savedTheme === "light") {
-            return savedTheme;
-        }
-    } catch (error) {
-    }
-
     return "light";
 }
 
-function setTheme(theme, save) {
+function getCurrentTheme() {
+    return root.classList.contains("dark") ? "dark" : "light";
+}
+
+function setTheme(theme) {
     if (theme !== "dark" && theme !== "light") {
         theme = "light";
     }
 
-    root.classList.remove("dark");
-
-    if (theme === "dark") {
-        root.classList.add("dark");
-    }
+    root.classList.toggle("dark", theme === "dark");
 
     root.setAttribute("data-theme", theme);
-
-    if (save) {
-        try {
-            localStorage.setItem(themeStorageKey, theme);
-        } catch (error) {
-        }
-    }
-
     syncThemeToggleIcons(theme);
+    syncThemeToggleLabels(theme);
 }
 
 function syncThemeToggleIcons(theme) {
@@ -50,11 +34,33 @@ function syncThemeToggleIcons(theme) {
     }
 }
 
+function syncThemeToggleLabels(theme) {
+    var buttons = [
+        document.getElementById("theme-toggle"),
+        document.getElementById("theme-toggle-mobile")
+    ];
+    var label = theme === "dark" ? "Включить светлую тему" : "Включить темную тему";
+
+    for (var i = 0; i < buttons.length; i++) {
+        var button = buttons[i];
+
+        if (!button) {
+            continue;
+        }
+
+        button.setAttribute("aria-label", label);
+        button.setAttribute("title", label);
+    }
+}
+
 function setupThemeToggle() {
     var toggleButtons = [
         document.getElementById("theme-toggle"),
         document.getElementById("theme-toggle-mobile")
     ];
+
+    syncThemeToggleIcons(getCurrentTheme());
+    syncThemeToggleLabels(getCurrentTheme());
 
     for (var i = 0; i < toggleButtons.length; i++) {
         var button = toggleButtons[i];
@@ -63,10 +69,10 @@ function setupThemeToggle() {
             continue;
         }
 
-        button.onclick = function () {
-            var nextTheme = root.classList.contains("dark") ? "light" : "dark";
-            setTheme(nextTheme, true);
-        };
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            setTheme(getCurrentTheme() === "dark" ? "light" : "dark");
+        });
     }
 }
 
@@ -166,7 +172,7 @@ function setupMobileMenu() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    setTheme(getInitialTheme(), false);
+    setTheme(getInitialTheme());
     setupThemeToggle();
     setupMobileMenu();
     setupShiftTimers();
