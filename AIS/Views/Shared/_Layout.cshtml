@@ -57,9 +57,23 @@
     <script>
         (function () {
             var root = document.documentElement;
-            root.classList.remove("dark");
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem("ais-theme");
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            if (savedTheme === "dark") {
+                root.classList.add("dark");
+                root.dataset.theme = "dark";
+            } else {
+                root.classList.remove("dark");
+                root.dataset.theme = "light";
+            }
+
             root.dataset.themeReady = "true";
-            root.dataset.theme = "light";
         })();
     </script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -104,12 +118,18 @@
                                 </a>
                             </nav>
 
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="inline-flex min-h-11 items-center rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
-                                    Выйти
+                            <div class="flex items-center gap-2">
+                                <button id="theme-toggle" type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white" aria-label="Сменить тему" title="Сменить тему">
+                                    <span class="text-lg leading-none" data-theme-icon>◐</span>
                                 </button>
-                            </form>
+
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="inline-flex min-h-11 items-center rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+                                        Выйти
+                                    </button>
+                                </form>
+                            </div>
                         </div>
 
                         <button id="mobile-menu-toggle" type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white lg:hidden" aria-expanded="false" aria-controls="mobile-menu" aria-label="Открыть меню">
@@ -139,6 +159,11 @@
                             </a>
 
                             <div class="border-t border-slate-200 pt-2 dark:border-slate-800">
+                                <button id="theme-toggle-mobile" type="button" class="flex min-h-11 w-full items-center rounded-2xl px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white" aria-label="Сменить тему">
+                                    <span class="mr-3 text-base leading-none" data-theme-icon-mobile>◐</span>
+                                    Тема
+                                </button>
+
                                 <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="flex min-h-11 w-full items-center rounded-2xl px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40">
