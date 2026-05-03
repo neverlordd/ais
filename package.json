@@ -1,0 +1,12 @@
+{
+  "name": "shiftline-ais",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Локальные команды запуска для ASP.NET Core MVC проекта ShiftLine.",
+  "scripts": {
+    "dev": "dotnet watch --project ./AIS/AIS.csproj run",
+    "start": "dotnet run --project ./AIS/AIS.csproj",
+    "build": "dotnet build ./AIS/AIS.csproj",
+    "restore": "dotnet restore ./AIS/AIS.csproj"
+  }
+}
