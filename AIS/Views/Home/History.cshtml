@@ -1,0 +1,83 @@
+@model AIS.ViewModels.Home.HistoryViewModel
+@{
+    ViewData["Title"] = "История";
+
+    static string FormatDuration(int totalMinutes)
+    {
+        var safeMinutes = Math.Max(0, totalMinutes);
+        var hours = safeMinutes / 60;
+        var minutes = safeMinutes % 60;
+        return $"{hours:00}:{minutes:00}";
+    }
+}
+
+<div class="mx-auto max-w-6xl space-y-6">
+    <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">История смен</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Мои отметки</h1>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                <a asp-action="Shifts" asp-route-period="today" class="app-button @(Model.Period == "today" ? "app-button-primary" : "app-button-ghost") min-h-10 rounded-[1rem] px-4 text-sm font-semibold">Сегодня</a>
+                <a asp-action="Shifts" asp-route-period="week" class="app-button @(Model.Period == "week" ? "app-button-primary" : "app-button-ghost") min-h-10 rounded-[1rem] px-4 text-sm font-semibold">7 дней</a>
+                <a asp-action="Shifts" asp-route-period="month" class="app-button @(Model.Period == "month" ? "app-button-primary" : "app-button-ghost") min-h-10 rounded-[1rem] px-4 text-sm font-semibold">Месяц</a>
+                <a asp-action="Shifts" asp-route-period="all" class="app-button @(Model.Period == "all" ? "app-button-primary" : "app-button-ghost") min-h-10 rounded-[1rem] px-4 text-sm font-semibold">Все</a>
+            </div>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <span class="app-inline-meta-pill">@Model.RangeLabel</span>
+            <span class="app-inline-meta-pill">Смен: @Model.TotalShifts</span>
+            <span class="app-inline-meta-pill">В работе: @FormatDuration(Model.WorkedMinutes)</span>
+            @if (Model.ActiveShifts > 0)
+            {
+                <span class="app-inline-meta-pill">Активных: @Model.ActiveShifts</span>
+            }
+        </div>
+    </section>
+
+    <section class="app-surface overflow-hidden rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
+        @if (!Model.Rows.Any())
+        {
+            <div class="rounded-[1.5rem] bg-slate-50/80 px-5 py-10 text-center text-sm text-slate-500 dark:bg-slate-950/50 dark:text-slate-400">
+                За выбранный период записей нет.
+            </div>
+        }
+        else
+        {
+            <div class="overflow-hidden rounded-[1.5rem] bg-slate-50/80 dark:bg-slate-950/50">
+                <div class="app-scrollbar overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-slate-200/70 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                                <th class="px-4 py-3 sm:px-5">Дата</th>
+                                <th class="px-4 py-3 sm:px-5">Начало</th>
+                                <th class="px-4 py-3 sm:px-5">Окончание</th>
+                                <th class="px-4 py-3 sm:px-5">Статус</th>
+                                <th class="px-4 py-3 text-right sm:px-5">Длительность</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200/70 text-sm dark:divide-slate-800">
+                            @foreach (var row in Model.Rows)
+                            {
+                                <tr class="app-table-row">
+                                    <td class="px-4 py-4 font-medium text-slate-950 dark:text-white sm:px-5">@row.StartTime.ToString("dd.MM.yyyy")</td>
+                                    <td class="px-4 py-4 text-slate-600 dark:text-slate-300 sm:px-5">@row.StartTime.ToString("HH:mm")</td>
+                                    <td class="px-4 py-4 text-slate-600 dark:text-slate-300 sm:px-5">@(row.EndTime?.ToString("HH:mm") ?? "В работе")</td>
+                                    <td class="px-4 py-4 sm:px-5">
+                                        <span class="app-status-pill @(row.IsActive ? "app-status-pill-active" : "app-status-pill-idle")">
+                                            @(row.IsActive ? "Активна" : "Завершена")
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4 text-right font-medium text-slate-950 dark:text-white sm:px-5">@FormatDuration(row.DurationMinutes)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </section>
+</div>

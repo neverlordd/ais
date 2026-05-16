@@ -15,4 +15,14 @@ public class AdminEmployeeRowViewModel
     public bool IsOnShift { get; set; }
 
     public DateTime? ActiveShiftStartTime { get; set; }
+
+    public DateTime? LastShiftStartTime { get; set; }
+
+    public DateTime? LastShiftEndTime { get; set; }
+
+    public int ShiftsTodayCount { get; set; }
+
+    public int WorkedMinutesToday { get; set; }
+
+    public bool NeedsAttention { get; set; }
 }

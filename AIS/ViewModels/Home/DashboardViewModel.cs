@@ -17,4 +17,12 @@ public class DashboardViewModel
     public DateTime? LatestShiftStartTimeToday { get; set; }
 
     public DateTime? LatestShiftEndTimeToday { get; set; }
+
+    public DateTime? FirstShiftStartToday { get; set; }
+
+    public int ShiftsTodayCount { get; set; }
+
+    public int WorkedMinutesToday { get; set; }
+
+    public IReadOnlyCollection<DashboardShiftHistoryItemViewModel> RecentShifts { get; set; } = [];
 }

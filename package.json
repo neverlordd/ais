@@ -4,9 +4,16 @@
   "version": "1.0.0",
   "description": "Локальные команды запуска для ASP.NET Core MVC проекта ShiftLine.",
   "scripts": {
-    "dev": "dotnet watch --project ./AIS/AIS.csproj run",
-    "start": "dotnet run --project ./AIS/AIS.csproj",
-    "build": "dotnet build ./AIS/AIS.csproj",
-    "restore": "dotnet restore ./AIS/AIS.csproj"
+    "dev": "concurrently -k -n tailwind,dotnet \"npm:tailwind:watch\" \"dotnet watch --project ./AIS/AIS.csproj run\"",
+    "start": "npm run tailwind:build && dotnet run --project ./AIS/AIS.csproj",
+    "build": "npm run tailwind:build && dotnet build ./AIS/AIS.csproj",
+    "restore": "dotnet restore ./AIS/AIS.csproj",
+    "tailwind:build": "tailwindcss -i ./AIS/Styles/tailwind.css -o ./AIS/wwwroot/css/tailwind.generated.css --minify",
+    "tailwind:watch": "tailwindcss -i ./AIS/Styles/tailwind.css -o ./AIS/wwwroot/css/tailwind.generated.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.4",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "^4.2.4"
   }
 }

@@ -1,16 +1,36 @@
 var root = document.documentElement;
+var themeStorageKey = "shiftline-theme";
 
 function getInitialTheme() {
-    return "light";
+    try {
+        var savedTheme = localStorage.getItem(themeStorageKey);
+        if (savedTheme === "dark" || savedTheme === "light") {
+            return savedTheme;
+        }
+    } catch (error) {
+    }
+
+    return root.classList.contains("dark") ? "dark" : "light";
 }
 
 function getCurrentTheme() {
     return root.classList.contains("dark") ? "dark" : "light";
 }
 
-function setTheme(theme) {
+function persistTheme(theme) {
+    try {
+        localStorage.setItem(themeStorageKey, theme);
+    } catch (error) {
+    }
+}
+
+function setTheme(theme, persist) {
     if (theme !== "dark" && theme !== "light") {
         theme = "light";
+    }
+
+    if (persist === undefined) {
+        persist = true;
     }
 
     root.classList.toggle("dark", theme === "dark");
@@ -18,6 +38,10 @@ function setTheme(theme) {
     root.setAttribute("data-theme", theme);
     syncThemeToggleIcons(theme);
     syncThemeToggleLabels(theme);
+
+    if (persist) {
+        persistTheme(theme);
+    }
 }
 
 function syncThemeToggleIcons(theme) {
@@ -172,7 +196,7 @@ function setupMobileMenu() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    setTheme(getInitialTheme());
+    setTheme(getInitialTheme(), false);
     setupThemeToggle();
     setupMobileMenu();
     setupShiftTimers();
