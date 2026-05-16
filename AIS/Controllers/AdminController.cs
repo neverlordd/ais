@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using System.Text;
 using AIS.Data;
+using AIS.Extensions;
 using AIS.Models;
 using AIS.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -18,31 +20,78 @@ public class AdminController(
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, string status = AdminStatusFilterOption.All)
     {
-        var employees = await _dbContext.Users
+        var now = DateTime.Now;
+        var today = DateTime.Today;
+        var tomorrow = today.AddDays(1);
+        var normalizedSearch = string.IsNullOrWhiteSpace(search) ? null : search.Trim().ToLowerInvariant();
+        var selectedStatus = NormalizeStatusFilter(status);
+
+        var users = await _dbContext.Users
             .AsNoTracking()
+            .Include(user => user.Shifts)
             .OrderBy(user => user.FullName)
-            .Select(user => new AdminEmployeeRowViewModel
+            .ToListAsync();
+
+        var employees = users
+            .Select(user =>
             {
-                Id = user.Id,
-                FullName = user.FullName,
-                Username = user.Username,
-                Role = user.Role,
-                IsOnShift = user.Shifts.Any(shift => shift.IsActive),
-                ActiveShiftStartTime = user.Shifts
+                var activeShift = user.Shifts
                     .Where(shift => shift.IsActive)
                     .OrderByDescending(shift => shift.StartTime)
-                    .Select(shift => (DateTime?)shift.StartTime)
-                    .FirstOrDefault()
+                    .FirstOrDefault();
+
+                var lastShift = user.Shifts
+                    .OrderByDescending(shift => shift.StartTime)
+                    .FirstOrDefault();
+
+                var todayShifts = user.Shifts
+                    .Where(shift => shift.StartTime >= today && shift.StartTime < tomorrow)
+                    .OrderByDescending(shift => shift.StartTime)
+                    .ToList();
+
+                return new AdminEmployeeRowViewModel
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Username = user.Username,
+                    Role = user.Role,
+                    IsOnShift = activeShift is not null,
+                    ActiveShiftStartTime = activeShift?.StartTime,
+                    LastShiftStartTime = lastShift?.StartTime,
+                    LastShiftEndTime = lastShift?.EndTime,
+                    ShiftsTodayCount = todayShifts.Count,
+                    WorkedMinutesToday = todayShifts.Sum(shift =>
+                    {
+                        var endTime = shift.IsActive ? now : shift.EndTime ?? shift.StartTime;
+                        var minutes = (int)Math.Floor((endTime - shift.StartTime).TotalMinutes);
+                        return Math.Max(0, minutes);
+                    }),
+                    NeedsAttention = activeShift is not null && activeShift.StartTime <= now.AddHours(-10)
+                };
             })
-            .ToListAsync();
+            .Where(employee => normalizedSearch is null
+                || employee.FullName.ToLowerInvariant().Contains(normalizedSearch)
+                || employee.Username.ToLowerInvariant().Contains(normalizedSearch))
+            .Where(employee => status switch
+            {
+                _ when selectedStatus == AdminStatusFilterOption.OnShift => employee.IsOnShift,
+                _ when selectedStatus == AdminStatusFilterOption.OffShift => !employee.IsOnShift,
+                _ when selectedStatus == AdminStatusFilterOption.Admins => employee.Role == UserRole.Admin,
+                _ => true
+            })
+            .ToList();
 
         var viewModel = new AdminIndexViewModel
         {
             Employees = employees,
-            TotalEmployees = employees.Count,
-            ActiveEmployees = employees.Count(item => item.IsOnShift)
+            TotalEmployees = users.Count,
+            ActiveEmployees = users.Count(user => user.Shifts.Any(shift => shift.IsActive)),
+            LongRunningShiftsCount = users.Count(user => user.Shifts.Any(shift => shift.IsActive && shift.StartTime <= now.AddHours(-10))),
+            FilteredEmployeesCount = employees.Count,
+            SearchQuery = search?.Trim() ?? string.Empty,
+            StatusFilter = selectedStatus
         };
 
         return View(viewModel);
@@ -66,6 +115,34 @@ public class AdminController(
         {
             Username = user.Username
         });
+    }
+
+    [HttpGet("/admin/shift-log")]
+    public async Task<IActionResult> ShiftLog(string? search, string period = "today", string? date = null)
+    {
+        var now = DateTime.Now;
+        var report = await BuildShiftLogReportAsync(search, period, date, now);
+        return View("History", report);
+    }
+
+    [HttpGet("/admin/shift-log/export")]
+    public async Task<IActionResult> ShiftLogExport(string? search, string period = "today", string? date = null, string mode = "rows")
+    {
+        var now = DateTime.Now;
+        var report = await BuildShiftLogReportAsync(search, period, date, now);
+        var exportMode = mode == "employees" ? "employees" : "rows";
+        var csv = exportMode == "employees"
+            ? BuildEmployeeSummaryCsv(report.Employees)
+            : BuildShiftRowsCsv(report.Rows);
+
+        var dateSuffix = !string.IsNullOrWhiteSpace(report.ExactDate)
+            ? report.ExactDate
+            : report.Period;
+        var fileName = exportMode == "employees"
+            ? $"employees-{dateSuffix}.csv"
+            : $"shift-log-{dateSuffix}.csv";
+
+        return File(new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv), "text/csv; charset=utf-8", fileName);
     }
 
     [HttpPost]
@@ -354,4 +431,184 @@ public class AdminController(
     }
 
     private static string Normalize(string value) => value.Trim();
+
+    private static string NormalizeStatusFilter(string? value) => value switch
+    {
+        AdminStatusFilterOption.OnShift => AdminStatusFilterOption.OnShift,
+        AdminStatusFilterOption.OffShift => AdminStatusFilterOption.OffShift,
+        AdminStatusFilterOption.Admins => AdminStatusFilterOption.Admins,
+        _ => AdminStatusFilterOption.All
+    };
+
+    private static string NormalizePeriod(string? period, bool includeAll, string defaultValue) => period switch
+    {
+        "today" => "today",
+        "week" => "week",
+        "month" => "month",
+        "all" when includeAll => "all",
+        _ => defaultValue
+    };
+
+    private static (DateTime? Start, DateTime? End, string Label) GetPeriodRange(string period, DateTime now) => period switch
+    {
+        "today" => (now.Date, now.Date.AddDays(1), "Сегодня"),
+        "week" => (now.Date.AddDays(-6), now.Date.AddDays(1), "Последние 7 дней"),
+        "month" => (new DateTime(now.Year, now.Month, 1), new DateTime(now.Year, now.Month, 1).AddMonths(1), "Текущий месяц"),
+        "all" => (null, null, "Все время"),
+        _ => (now.Date, now.Date.AddDays(1), "Сегодня")
+    };
+
+    private static int CalculateDurationMinutes(DateTime startTime, DateTime? endTime, bool isActive, DateTime now)
+    {
+        var actualEnd = isActive ? now : endTime ?? startTime;
+        return Math.Max(0, (int)Math.Floor((actualEnd - startTime).TotalMinutes));
+    }
+
+    private async Task<AdminShiftLogViewModel> BuildShiftLogReportAsync(string? search, string period, string? date, DateTime now)
+    {
+        var normalizedSearch = string.IsNullOrWhiteSpace(search) ? null : search.Trim().ToLowerInvariant();
+        var normalizedPeriod = NormalizePeriod(period, includeAll: true, defaultValue: "today");
+        var exactDate = ParseDate(date);
+        var (rangeStart, rangeEnd, rangeLabel) = exactDate.HasValue
+            ? (exactDate.Value.Date, exactDate.Value.Date.AddDays(1), exactDate.Value.ToString("dd.MM.yyyy"))
+            : GetPeriodRange(normalizedPeriod, now);
+
+        var shiftsQuery = _dbContext.Shifts
+            .AsNoTracking()
+            .Include(shift => shift.User)
+            .AsQueryable();
+
+        if (rangeStart.HasValue && rangeEnd.HasValue)
+        {
+            shiftsQuery = shiftsQuery.Where(shift => shift.StartTime >= rangeStart.Value && shift.StartTime < rangeEnd.Value);
+        }
+
+        if (normalizedSearch is not null)
+        {
+            shiftsQuery = shiftsQuery.Where(shift =>
+                shift.User != null &&
+                (shift.User.FullName.ToLower().Contains(normalizedSearch)
+                 || shift.User.Username.ToLower().Contains(normalizedSearch)));
+        }
+
+        var shifts = await shiftsQuery
+            .OrderByDescending(shift => shift.StartTime)
+            .Take(500)
+            .ToListAsync();
+
+        var rows = shifts
+            .Where(shift => shift.User is not null)
+            .Select(shift => new AdminShiftLogRowViewModel
+            {
+                UserId = shift.UserId,
+                FullName = shift.User!.FullName,
+                Username = shift.User.Username,
+                Role = shift.User.Role,
+                StartTime = shift.StartTime,
+                EndTime = shift.EndTime,
+                IsActive = shift.IsActive,
+                DurationMinutes = CalculateDurationMinutes(shift.StartTime, shift.EndTime, shift.IsActive, now)
+            })
+            .ToList();
+
+        var employees = rows
+            .GroupBy(row => new { row.UserId, row.FullName, row.Username, row.Role })
+            .Select(group => new AdminShiftLogEmployeeSummaryViewModel
+            {
+                UserId = group.Key.UserId,
+                FullName = group.Key.FullName,
+                Username = group.Key.Username,
+                Role = group.Key.Role,
+                ShiftsCount = group.Count(),
+                WorkedMinutes = group.Sum(item => item.DurationMinutes),
+                FirstStartTime = group.Min(item => item.StartTime),
+                LastEndTime = group.Where(item => item.EndTime.HasValue).Max(item => item.EndTime),
+                HasActiveShift = group.Any(item => item.IsActive)
+            })
+            .OrderBy(item => item.FullName)
+            .ToList();
+
+        return new AdminShiftLogViewModel
+        {
+            SearchQuery = search?.Trim() ?? string.Empty,
+            Period = normalizedPeriod,
+            ExactDate = exactDate?.ToString("yyyy-MM-dd") ?? string.Empty,
+            RangeLabel = rangeLabel,
+            TotalRecords = rows.Count,
+            ActiveRecords = rows.Count(item => item.IsActive),
+            UniqueEmployees = employees.Count,
+            TotalWorkedMinutes = rows.Sum(item => item.DurationMinutes),
+            Employees = employees,
+            Rows = rows
+        };
+    }
+
+    private static DateTime? ParseDate(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return DateTime.TryParse(value, out var parsedDate)
+            ? parsedDate.Date
+            : null;
+    }
+
+    private static string BuildShiftRowsCsv(IReadOnlyCollection<AdminShiftLogRowViewModel> rows)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("Сотрудник;Логин;Роль;Начало;Окончание;Статус;Минуты;Длительность");
+
+        foreach (var row in rows)
+        {
+            builder.AppendLine(string.Join(";",
+                EscapeCsv(row.FullName),
+                EscapeCsv(row.Username),
+                EscapeCsv(row.Role.GetDisplayName()),
+                EscapeCsv(row.StartTime.ToString("dd.MM.yyyy HH:mm")),
+                EscapeCsv(row.EndTime?.ToString("dd.MM.yyyy HH:mm") ?? string.Empty),
+                EscapeCsv(row.IsActive ? "Активна" : "Завершена"),
+                row.DurationMinutes.ToString(),
+                EscapeCsv(FormatDuration(row.DurationMinutes))));
+        }
+
+        return builder.ToString();
+    }
+
+    private static string BuildEmployeeSummaryCsv(IReadOnlyCollection<AdminShiftLogEmployeeSummaryViewModel> employees)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("Сотрудник;Логин;Роль;Смен;Минуты;Длительность;Первый приход;Последний уход;Активная смена");
+
+        foreach (var employee in employees)
+        {
+            builder.AppendLine(string.Join(";",
+                EscapeCsv(employee.FullName),
+                EscapeCsv(employee.Username),
+                EscapeCsv(employee.Role.GetDisplayName()),
+                employee.ShiftsCount.ToString(),
+                employee.WorkedMinutes.ToString(),
+                EscapeCsv(FormatDuration(employee.WorkedMinutes)),
+                EscapeCsv(employee.FirstStartTime?.ToString("dd.MM.yyyy HH:mm") ?? string.Empty),
+                EscapeCsv(employee.LastEndTime?.ToString("dd.MM.yyyy HH:mm") ?? string.Empty),
+                EscapeCsv(employee.HasActiveShift ? "Да" : "Нет")));
+        }
+
+        return builder.ToString();
+    }
+
+    private static string EscapeCsv(string value)
+    {
+        var normalized = value.Replace("\"", "\"\"");
+        return $"\"{normalized}\"";
+    }
+
+    private static string FormatDuration(int totalMinutes)
+    {
+        var safeMinutes = Math.Max(0, totalMinutes);
+        var hours = safeMinutes / 60;
+        var minutes = safeMinutes % 60;
+        return $"{hours:00}:{minutes:00}";
+    }
 }

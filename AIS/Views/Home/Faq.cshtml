@@ -2,32 +2,33 @@
     ViewData["Title"] = "FAQ";
 }
 
-<div class="mx-auto max-w-4xl">
-    <section class="rounded-[2rem] border border-slate-200/80 bg-white/95 p-6 shadow-soft dark:border-slate-800 dark:bg-slate-900/95 sm:p-8">
-        <div class="border-b border-slate-200 pb-6 dark:border-slate-800">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">FAQ</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Частые вопросы</h1>
+<div class="mx-auto max-w-5xl">
+    <section class="app-surface rounded-[2rem] px-5 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <div class="border-b border-slate-200/80 pb-6 dark:border-slate-800">
+            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">FAQ</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Как работать в системе</h1>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Коротко про основные сценарии для сотрудника и администратора.</p>
         </div>
 
-        <div class="mt-6 space-y-4">
-            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/80">
-                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Как начать смену?</h2>
-                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Нажмите кнопку «Начать смену» на главной странице в момент фактического начала работы.</p>
+        <div class="mt-6 grid gap-4 lg:grid-cols-2">
+            <article class="app-muted-surface rounded-[1.5rem] px-5 py-5">
+                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Начало и завершение смены</h2>
+                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Сотрудник отмечает только факт начала и окончания работы. Если смена уже активна, повторно запускать ее не нужно.</p>
             </article>
 
-            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/80">
-                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Как завершить смену?</h2>
-                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Если смена активна, на главной странице появится кнопка «Завершить смену» и таймер текущей продолжительности.</p>
+            <article class="app-muted-surface rounded-[1.5rem] px-5 py-5">
+                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Проверка своего дня</h2>
+                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">На главной странице видно текущий статус, суммарное время за сегодня, первую отметку и последние записи по аккаунту.</p>
             </article>
 
-            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/80">
-                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Что делать, если статус неверный?</h2>
-                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Не создавайте дублирующую смену. Обратитесь к администратору, он сможет скорректировать состояние из панели управления.</p>
+            <article class="app-muted-surface rounded-[1.5rem] px-5 py-5">
+                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Если статус неверный</h2>
+                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Не создавайте вторую смену вручную. Администратор может найти сотрудника через поиск и скорректировать состояние из панели управления.</p>
             </article>
 
-            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/80">
-                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Что видит администратор?</h2>
-                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Администратор видит всех сотрудников, их статусы, активные смены и таймеры, а также может создавать, редактировать и удалять учетные записи.</p>
+            <article class="app-muted-surface rounded-[1.5rem] px-5 py-5">
+                <h2 class="text-lg font-semibold text-slate-950 dark:text-white">Что контролирует администратор</h2>
+                <p class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Администратор видит всех сотрудников, фильтрует список по статусу, отслеживает длинные активные смены и управляет учетными записями.</p>
             </article>
         </div>
     </section>
