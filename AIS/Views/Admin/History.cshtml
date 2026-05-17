@@ -11,19 +11,19 @@
     }
 }
 
-<div class="space-y-6">
+<div class="app-page">
     <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="app-toolbar">
             <div>
                 <p class="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Журнал</p>
                 <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">История смен</h1>
             </div>
         </div>
 
-        <div class="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+        <div class="app-meta-row mt-5 text-sm text-slate-500 dark:text-slate-400">
             <span class="app-inline-meta-pill">@Model.RangeLabel</span>
             <span class="app-inline-meta-pill">Записей: @Model.TotalRecords</span>
-            <span class="app-inline-meta-pill">Сотрудников: @Model.UniqueEmployees</span>
+            <span class="app-inline-meta-pill">Сотрудников: @Model.EmployeesInScope</span>
             <span class="app-inline-meta-pill">Время: @FormatDuration(Model.TotalWorkedMinutes)</span>
             @if (Model.ActiveRecords > 0)
             {
@@ -33,61 +33,102 @@
     </section>
 
     <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <form method="get" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto] lg:items-end">
+        <div class="app-section-card">
             <div>
-                <label for="search" class="text-sm font-medium text-slate-600 dark:text-slate-300">Поиск</label>
-                <input id="search" name="search" value="@Model.SearchQuery" class="mt-2 w-full rounded-[1.15rem] border-0 bg-slate-100/80 px-4 py-3 text-slate-950 shadow-none ring-1 ring-slate-950/6 transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-brand-500 dark:bg-slate-900/80 dark:text-white dark:ring-white/10 dark:focus:bg-slate-900" placeholder="ФИО или логин" />
+                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Фильтры и выгрузка</p>
+                <h2 class="mt-1 text-xl font-semibold tracking-tight text-slate-950 dark:text-white">Сформировать отчет</h2>
             </div>
 
-            <div>
-                <label for="period" class="text-sm font-medium text-slate-600 dark:text-slate-300">Период</label>
-                <select id="period" name="period" class="mt-2 w-full rounded-[1.15rem] border-0 bg-slate-100/80 px-4 py-3 text-slate-950 shadow-none ring-1 ring-slate-950/6 transition focus:bg-white focus:ring-2 focus:ring-brand-500 dark:bg-slate-900/80 dark:text-white dark:ring-white/10 dark:focus:bg-slate-900">
-                    <option value="today" selected="@(Model.Period == "today")">Сегодня</option>
-                    <option value="week" selected="@(Model.Period == "week")">7 дней</option>
-                    <option value="month" selected="@(Model.Period == "month")">Месяц</option>
-                    <option value="all" selected="@(Model.Period == "all")">Все время</option>
-                </select>
+            <form method="get" class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_11rem_11rem_13rem_auto] xl:items-end">
+                <div class="app-field">
+                    <label for="search" class="app-label">Поиск</label>
+                    <input id="search" name="search" value="@Model.SearchQuery" class="app-input" placeholder="ФИО или логин" />
+                </div>
+
+                <div class="app-field">
+                    <label for="period" class="app-label">Период</label>
+                    <select id="period" name="period" class="app-select">
+                        <option value="today" selected="@(Model.Period == "today")">Сегодня</option>
+                        <option value="week" selected="@(Model.Period == "week")">7 дней</option>
+                        <option value="month" selected="@(Model.Period == "month")">Месяц</option>
+                        <option value="all" selected="@(Model.Period == "all")">Все время</option>
+                    </select>
+                </div>
+
+                <div class="app-field">
+                    <label for="date" class="app-label">Точная дата</label>
+                    <input id="date" name="date" type="date" value="@Model.ExactDate" class="app-input" />
+                </div>
+
+                <div class="app-field">
+                    <label for="attendance" class="app-label">Сотрудники</label>
+                    <select id="attendance" name="attendance" class="app-select">
+                        <option value="@AIS.ViewModels.Admin.AdminAttendanceFilterOption.All" selected="@(Model.AttendanceFilter == AIS.ViewModels.Admin.AdminAttendanceFilterOption.All)">Все</option>
+                        <option value="@AIS.ViewModels.Admin.AdminAttendanceFilterOption.Worked" selected="@(Model.AttendanceFilter == AIS.ViewModels.Admin.AdminAttendanceFilterOption.Worked)">Были на смене</option>
+                        <option value="@AIS.ViewModels.Admin.AdminAttendanceFilterOption.Absent" selected="@(Model.AttendanceFilter == AIS.ViewModels.Admin.AdminAttendanceFilterOption.Absent)">Не были на смене</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="app-button app-button-primary min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">Применить</button>
+                    <a href="/admin/shift-log" class="app-button app-button-ghost min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">Сбросить</a>
+                </div>
+            </form>
+
+            <div class="app-stat-grid">
+                <div class="app-stat-card">
+                    <p class="app-stat-label">Всего в выборке</p>
+                    <p class="app-stat-value">@Model.EmployeesInScope</p>
+                    <p class="app-stat-note">После поиска и фильтра по присутствию</p>
+                </div>
+                <div class="app-stat-card">
+                    <p class="app-stat-label">Были на смене</p>
+                    <p class="app-stat-value">@Model.EmployeesWorkedCount</p>
+                    <p class="app-stat-note">Есть хотя бы одна запись за период</p>
+                </div>
+                <div class="app-stat-card">
+                    <p class="app-stat-label">Не были на смене</p>
+                    <p class="app-stat-value">@Model.EmployeesAbsentCount</p>
+                    <p class="app-stat-note">Нет ни одной записи за период</p>
+                </div>
             </div>
 
-            <div>
-                <label for="date" class="text-sm font-medium text-slate-600 dark:text-slate-300">Точная дата</label>
-                <input id="date" name="date" type="date" value="@Model.ExactDate" class="mt-2 w-full rounded-[1.15rem] border-0 bg-slate-100/80 px-4 py-3 text-slate-950 shadow-none ring-1 ring-slate-950/6 transition focus:bg-white focus:ring-2 focus:ring-brand-500 dark:bg-slate-900/80 dark:text-white dark:ring-white/10 dark:focus:bg-slate-900" />
+            <div class="app-actions-row">
+                <a asp-action="ShiftLogExport" asp-route-search="@Model.SearchQuery" asp-route-period="@Model.Period" asp-route-date="@Model.ExactDate" asp-route-attendance="@Model.AttendanceFilter" asp-route-mode="rows" class="app-button app-button-ghost min-h-11 rounded-[1rem] px-4 text-sm font-semibold">
+                    Журнал CSV
+                </a>
+                <a asp-action="ShiftLogExport" asp-route-search="@Model.SearchQuery" asp-route-period="@Model.Period" asp-route-date="@Model.ExactDate" asp-route-attendance="@AIS.ViewModels.Admin.AdminAttendanceFilterOption.All" asp-route-mode="employees" class="app-button app-button-ghost min-h-11 rounded-[1rem] px-4 text-sm font-semibold">
+                    Все сотрудники CSV
+                </a>
+                <a asp-action="ShiftLogExport" asp-route-search="@Model.SearchQuery" asp-route-period="@Model.Period" asp-route-date="@Model.ExactDate" asp-route-attendance="@AIS.ViewModels.Admin.AdminAttendanceFilterOption.Worked" asp-route-mode="employees" class="app-button app-button-ghost min-h-11 rounded-[1rem] px-4 text-sm font-semibold">
+                    Были на смене CSV
+                </a>
+                <a asp-action="ShiftLogExport" asp-route-search="@Model.SearchQuery" asp-route-period="@Model.Period" asp-route-date="@Model.ExactDate" asp-route-attendance="@AIS.ViewModels.Admin.AdminAttendanceFilterOption.Absent" asp-route-mode="employees" class="app-button app-button-ghost min-h-11 rounded-[1rem] px-4 text-sm font-semibold">
+                    Не были на смене CSV
+                </a>
             </div>
-
-            <div class="flex gap-2">
-                <button type="submit" class="app-button app-button-primary min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">Применить</button>
-                <a href="/admin/shift-log" class="app-button app-button-ghost min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">Сбросить</a>
-            </div>
-        </form>
-
-        <div class="mt-4 flex flex-wrap gap-2">
-            <a asp-action="ShiftLogExport" asp-route-search="@Model.SearchQuery" asp-route-period="@Model.Period" asp-route-date="@Model.ExactDate" asp-route-mode="rows" class="app-button app-button-ghost min-h-10 rounded-[1rem] px-4 text-sm font-semibold">
-                Скачать журнал CSV
-            </a>
-            <a asp-action="ShiftLogExport" asp-route-search="@Model.SearchQuery" asp-route-period="@Model.Period" asp-route-date="@Model.ExactDate" asp-route-mode="employees" class="app-button app-button-ghost min-h-10 rounded-[1rem] px-4 text-sm font-semibold">
-                Скачать сотрудников CSV
-            </a>
         </div>
     </section>
 
     <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Сотрудники в выборке</p>
-                <h2 class="mt-1 text-xl font-semibold tracking-tight text-slate-950 dark:text-white">Кто был на смене</h2>
+                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Сотрудники за период</p>
+                <h2 class="mt-1 text-xl font-semibold tracking-tight text-slate-950 dark:text-white">Список сотрудников</h2>
             </div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Уникальные сотрудники по текущему фильтру</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Текущая выборка без перехода к карточке сотрудника</p>
         </div>
 
         @if (!Model.Employees.Any())
         {
-            <div class="mt-5 rounded-[1.5rem] bg-slate-50/80 px-5 py-8 text-sm text-slate-500 dark:bg-slate-950/50 dark:text-slate-400">
-                По текущим условиям сотрудников нет.
+            <div class="app-empty-state mt-5">
+                <p class="app-empty-state-title">Сотрудников нет</p>
+                <p class="app-empty-state-text">Измените период, дату или строку поиска.</p>
             </div>
         }
         else
         {
-            <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div class="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 @foreach (var employee in Model.Employees)
                 {
                     <article class="app-muted-surface rounded-[1.35rem] px-4 py-4">
@@ -96,8 +137,8 @@
                                 <p class="truncate font-semibold text-slate-950 dark:text-white">@employee.FullName</p>
                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">@employee.Username</p>
                             </div>
-                            <span class="app-status-pill @(employee.HasActiveShift ? "app-status-pill-active" : "app-status-pill-idle")">
-                                @(employee.HasActiveShift ? "Активна" : $"{employee.ShiftsCount} смен")
+                            <span class="app-status-pill @(employee.WasOnShiftInPeriod ? (employee.HasActiveShift ? "app-status-pill-active" : "app-status-pill-idle") : "app-status-pill-warning")">
+                                @(employee.WasOnShiftInPeriod ? $"{employee.ShiftsCount} смен" : "Без смен")
                             </span>
                         </div>
 
@@ -118,10 +159,19 @@
     </section>
 
     <section class="app-surface overflow-hidden rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Журнал смен</p>
+                <h2 class="mt-1 text-xl font-semibold tracking-tight text-slate-950 dark:text-white">События по отметкам</h2>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Показываются только реальные записи о сменах</p>
+        </div>
+
         @if (!Model.Rows.Any())
         {
-            <div class="rounded-[1.5rem] bg-slate-50/80 px-5 py-10 text-center text-sm text-slate-500 dark:bg-slate-950/50 dark:text-slate-400">
-                По выбранным условиям записей нет.
+            <div class="app-empty-state">
+                <p class="app-empty-state-title">Записей нет</p>
+                <p class="app-empty-state-text">Для текущего набора условий журнал пуст. Если нужен список сотрудников без смен, используйте карточки выше или CSV-выгрузку.</p>
             </div>
         }
         else

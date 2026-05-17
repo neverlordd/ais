@@ -11,9 +11,9 @@
     }
 }
 
-<div class="mx-auto max-w-6xl space-y-6">
+<div class="mx-auto max-w-6xl app-page">
     <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
                 <p class="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">История смен</p>
                 <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Мои отметки</h1>
@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <div class="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+        <div class="app-meta-row mt-5 text-sm text-slate-500 dark:text-slate-400">
             <span class="app-inline-meta-pill">@Model.RangeLabel</span>
             <span class="app-inline-meta-pill">Смен: @Model.TotalShifts</span>
             <span class="app-inline-meta-pill">В работе: @FormatDuration(Model.WorkedMinutes)</span>
@@ -36,13 +36,32 @@
                 <span class="app-inline-meta-pill">Активных: @Model.ActiveShifts</span>
             }
         </div>
+
+        <div class="app-stat-grid mt-5">
+            <div class="app-stat-card">
+                <p class="app-stat-label">Смен</p>
+                <p class="app-stat-value">@Model.TotalShifts</p>
+                <p class="app-stat-note">Всего записей за выбранный период</p>
+            </div>
+            <div class="app-stat-card">
+                <p class="app-stat-label">Отработано</p>
+                <p class="app-stat-value">@FormatDuration(Model.WorkedMinutes)</p>
+                <p class="app-stat-note">Суммарная длительность смен</p>
+            </div>
+            <div class="app-stat-card">
+                <p class="app-stat-label">Активных</p>
+                <p class="app-stat-value">@Model.ActiveShifts</p>
+                <p class="app-stat-note">Смены, которые еще не завершены</p>
+            </div>
+        </div>
     </section>
 
     <section class="app-surface overflow-hidden rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
         @if (!Model.Rows.Any())
         {
-            <div class="rounded-[1.5rem] bg-slate-50/80 px-5 py-10 text-center text-sm text-slate-500 dark:bg-slate-950/50 dark:text-slate-400">
-                За выбранный период записей нет.
+            <div class="app-empty-state">
+                <p class="app-empty-state-title">Записей нет</p>
+                <p class="app-empty-state-text">Выберите другой период или начните новую смену.</p>
             </div>
         }
         else

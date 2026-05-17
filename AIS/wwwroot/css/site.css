@@ -5,7 +5,7 @@ html {
 
 body {
   min-height: 100vh;
-  font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 html:not(.dark) {
@@ -29,28 +29,42 @@ html.dark {
 }
 
 .app-shell {
-  background:
-    radial-gradient(circle at top left, rgba(148, 163, 184, 0.12), transparent 24rem),
-    linear-gradient(180deg, #f8fafc 0%, #f3f6fb 100%);
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
 }
 
 html.dark .app-shell {
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 24rem),
-    linear-gradient(180deg, #020617 0%, #0f172a 100%);
+  background: linear-gradient(180deg, #020617 0%, #09101c 100%);
+}
+
+.app-toast-stack {
+  position: fixed !important;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 80;
+  width: min(22rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.app-toast {
+  width: 100%;
+  pointer-events: auto;
+}
+
+@media (min-width: 640px) {
+  .app-toast-stack {
+    top: 1.5rem;
+    right: 1.5rem;
+  }
 }
 
 .app-header-shell {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 24px 60px -42px rgba(15, 23, 42, 0.32);
-  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px -20px rgba(15, 23, 42, 0.16);
 }
 
 html.dark .app-header-shell {
-  background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(148, 163, 184, 0.12);
-  box-shadow: 0 30px 70px -48px rgba(2, 6, 23, 0.8);
+  background: rgba(17, 24, 39, 0.98);
+  box-shadow: 0 12px 28px -20px rgba(2, 6, 23, 0.42);
 }
 
 .app-logo-mark {
@@ -60,38 +74,41 @@ html.dark .app-header-shell {
   align-items: center;
   justify-content: center;
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+  background: rgb(255 255 255);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
 }
 
 html.dark .app-logo-mark {
-  background: rgba(15, 23, 42, 0.78);
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+  background: rgb(15 23 42);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
 }
 
 .app-surface {
-  background: rgba(255, 255, 255, 0.82);
+  background: rgb(255 255 255);
   box-shadow:
-    0 20px 44px -36px rgba(15, 23, 42, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(16px);
+    0 14px 26px -18px rgba(15, 23, 42, 0.12),
+    0 3px 8px -6px rgba(15, 23, 42, 0.05);
 }
 
 html.dark .app-surface {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgb(22 30 46);
   box-shadow:
-    0 24px 52px -38px rgba(2, 6, 23, 0.72),
-    inset 0 1px 0 rgba(148, 163, 184, 0.08);
+    0 18px 34px -20px rgba(2, 6, 23, 0.42),
+    0 4px 10px -8px rgba(2, 6, 23, 0.22);
 }
 
 .app-muted-surface {
-  background: rgba(248, 250, 252, 0.9);
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.05);
+  background: rgb(248 250 252);
+  box-shadow:
+    0 10px 18px -16px rgba(15, 23, 42, 0.07),
+    0 2px 6px -6px rgba(15, 23, 42, 0.04);
 }
 
 html.dark .app-muted-surface {
-  background: rgba(2, 6, 23, 0.34);
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+  background: rgb(18 26 41 / 0.94);
+  box-shadow:
+    0 14px 24px -16px rgba(2, 6, 23, 0.28),
+    0 3px 8px -6px rgba(2, 6, 23, 0.16);
 }
 
 .app-nav-link,
@@ -110,14 +127,15 @@ html.dark .app-muted-surface {
   min-height: 2.75rem;
   align-items: center;
   border-radius: 999px;
-  padding: 0 1rem;
-  font-size: 0.92rem;
+  padding: 0 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: rgb(71 85 105);
+  white-space: nowrap;
 }
 
 .app-nav-link:hover {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(241, 245, 249, 0.96);
   color: rgb(15 23 42);
 }
 
@@ -126,36 +144,48 @@ html.dark .app-nav-link {
 }
 
 html.dark .app-nav-link:hover {
-  background: rgba(30, 41, 59, 0.72);
+  background: rgba(30, 41, 59, 0.96);
   color: rgb(255 255 255);
 }
 
 .app-nav-link-active {
-  background: rgb(15 23 42);
-  color: rgb(255 255 255);
+  background: rgb(241 245 249);
+  color: rgb(15 23 42);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
 }
 
 html.dark .app-nav-link-active {
-  background: rgb(255 255 255);
-  color: rgb(15 23 42);
+  background: rgba(30, 41, 59, 0.96);
+  color: rgb(255 255 255);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
 }
 
 .app-icon-button {
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgb(255 255 255);
   color: rgb(51 65 85);
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
 }
 
 .app-icon-button:hover {
-  transform: translateY(-1px);
+  background: rgb(248 250 252);
   color: rgb(15 23 42);
 }
 
+.app-icon-button:focus-visible,
+.app-nav-link:focus-visible,
+.app-mobile-link:focus-visible,
+.app-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(59, 130, 246, 0.16),
+    inset 0 0 0 1px rgba(59, 130, 246, 0.28);
+}
+
 html.dark .app-icon-button {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgb(15 23 42);
   color: rgb(203 213 225);
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.9);
 }
 
 html.dark .app-icon-button:hover {
@@ -168,13 +198,13 @@ html.dark .app-icon-button:hover {
   align-items: center;
   border-radius: 1rem;
   padding: 0 1rem;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: rgb(51 65 85);
 }
 
 .app-mobile-link:hover {
-  background: rgba(241, 245, 249, 0.9);
+  background: rgba(241, 245, 249, 0.96);
   color: rgb(15 23 42);
 }
 
@@ -188,57 +218,61 @@ html.dark .app-mobile-link:hover {
 }
 
 .app-mobile-link-active {
-  background: rgb(15 23 42);
-  color: rgb(255 255 255);
+  background: rgb(241 245 249);
+  color: rgb(15 23 42);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
 }
 
 html.dark .app-mobile-link-active {
-  background: rgb(255 255 255);
-  color: rgb(15 23 42);
+  background: rgba(30, 41, 59, 0.96);
+  color: rgb(255 255 255);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
 }
 
 .app-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.45rem;
 }
 
 .app-button:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .app-button-primary {
-  background: rgb(15 23 42);
+  background: rgb(30 41 59);
   color: rgb(255 255 255);
 }
 
 .app-button-primary:hover {
-  background: rgb(30 41 59);
+  background: rgb(15 23 42);
 }
 
 html.dark .app-button-primary {
-  background: rgb(255 255 255);
+  background: rgb(226 232 240);
   color: rgb(15 23 42);
 }
 
 html.dark .app-button-primary:hover {
-  background: rgb(226 232 240);
+  background: rgb(255 255 255);
 }
 
 .app-button-ghost {
-  background: rgba(255, 255, 255, 0.68);
+  background: rgb(255 255 255);
   color: rgb(51 65 85);
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
 }
 
 .app-button-ghost:hover {
+  background: rgb(248 250 252);
   color: rgb(15 23 42);
 }
 
 html.dark .app-button-ghost {
-  background: rgba(15, 23, 42, 0.76);
+  background: rgb(15 23 42);
   color: rgb(226 232 240);
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.9);
 }
 
 html.dark .app-button-ghost:hover {
@@ -255,7 +289,7 @@ html.dark .app-button-ghost:hover {
 }
 
 .app-button-danger-soft {
-  background: rgba(255, 241, 242, 0.96);
+  background: rgb(255 241 242);
   color: rgb(190 24 93);
 }
 
@@ -277,8 +311,8 @@ html.dark .app-button-danger-soft:hover {
   align-items: center;
   gap: 0.45rem;
   border-radius: 999px;
-  padding: 0.4rem 0.78rem;
-  font-size: 0.82rem;
+  padding: 0.38rem 0.76rem;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
@@ -339,19 +373,245 @@ html.dark .app-status-pill-warning {
   color: rgb(15 23 42);
 }
 
+.app-page {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.app-form-card {
+  border-radius: 2rem;
+  background: rgb(255 255 255);
+  box-shadow:
+    0 14px 26px -18px rgba(15, 23, 42, 0.12),
+    0 3px 8px -6px rgba(15, 23, 42, 0.05);
+  padding: 1.5rem;
+}
+
+html.dark .app-form-card {
+  background: rgb(22 30 46);
+  box-shadow:
+    0 18px 34px -20px rgba(2, 6, 23, 0.42),
+    0 4px 10px -8px rgba(2, 6, 23, 0.22);
+}
+
+.app-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.app-section-kicker {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+}
+
+.app-section-title {
+  font-size: 1.95rem;
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  color: rgb(15 23 42);
+}
+
+.app-section-description {
+  max-width: 42rem;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: rgb(100 116 139);
+}
+
+html.dark .app-section-title {
+  color: rgb(255 255 255);
+}
+
+html.dark .app-section-description,
+html.dark .app-section-kicker {
+  color: rgb(148 163 184);
+}
+
+.app-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.app-label {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: rgb(51 65 85);
+}
+
+html.dark .app-label {
+  color: rgb(226 232 240);
+}
+
+.app-input,
+.app-select {
+  width: 100%;
+  border: 0;
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.92);
+  padding: 0.92rem 1rem;
+  color: rgb(15 23 42);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.app-input::placeholder {
+  color: rgb(148 163 184);
+}
+
+.app-input:hover,
+.app-select:hover {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.app-input:focus,
+.app-select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 1);
+  box-shadow:
+    inset 0 0 0 1px rgba(59, 130, 246, 0.32),
+    0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+html.dark .app-input,
+html.dark .app-select {
+  background: rgba(2, 6, 23, 0.38);
+  color: rgb(255 255 255);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+}
+
+html.dark .app-input::placeholder {
+  color: rgb(100 116 139);
+}
+
+html.dark .app-input:hover,
+html.dark .app-select:hover {
+  background: rgba(2, 6, 23, 0.52);
+}
+
+html.dark .app-input:focus,
+html.dark .app-select:focus {
+  background: rgba(2, 6, 23, 0.58);
+  box-shadow:
+    inset 0 0 0 1px rgba(96, 165, 250, 0.34),
+    0 0 0 4px rgba(37, 99, 235, 0.16);
+}
+
+.app-validation {
+  font-size: 0.88rem;
+  color: rgb(225 29 72);
+}
+
+html.dark .app-validation {
+  color: rgb(253 164 175);
+}
+
+.app-validation-summary {
+  border-radius: 1rem;
+  border: 1px solid rgb(254 205 211);
+  background: rgba(255, 241, 242, 0.94);
+  padding: 0.85rem 1rem;
+  font-size: 0.92rem;
+  color: rgb(190 24 93);
+}
+
+html.dark .app-validation-summary {
+  border-color: rgba(136, 19, 55, 0.8);
+  background: rgba(76, 5, 25, 0.42);
+  color: rgb(254 205 211);
+}
+
+.app-note {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgb(100 116 139);
+}
+
+html.dark .app-note {
+  color: rgb(148 163 184);
+}
+
+.app-empty-state {
+  border-radius: 1.5rem;
+  background: rgb(248 250 252);
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+html.dark .app-empty-state {
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.app-empty-state-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgb(15 23 42);
+}
+
+.app-empty-state-text {
+  margin-top: 0.45rem;
+  font-size: 0.92rem;
+  color: rgb(100 116 139);
+}
+
+html.dark .app-empty-state-title {
+  color: rgb(255 255 255);
+}
+
+html.dark .app-empty-state-text {
+  color: rgb(148 163 184);
+}
+
+.app-divider {
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+html.dark .app-divider {
+  border-top-color: rgba(148, 163, 184, 0.1);
+}
+
+.app-link-subtle {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: rgb(100 116 139);
+  transition: color 160ms ease;
+}
+
+.app-link-subtle:hover {
+  color: rgb(15 23 42);
+}
+
+html.dark .app-link-subtle {
+  color: rgb(148 163 184);
+}
+
+html.dark .app-link-subtle:hover {
+  color: rgb(255 255 255);
+}
+
 .app-inline-meta-pill {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  background: rgba(248, 250, 252, 0.92);
-  padding: 0.5rem 0.85rem;
+  background: rgb(248 250 252);
+  padding: 0.46rem 0.8rem;
   line-height: 1;
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.28);
+  font-size: 0.82rem;
+  font-weight: 500;
 }
 
 html.dark .app-inline-meta-pill {
-  background: rgba(15, 23, 42, 0.76);
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.1);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.8);
 }
 
 html.dark .app-key-metric-label {
@@ -367,11 +627,99 @@ html.dark .app-key-metric-value {
 }
 
 .app-table-row:hover {
-  background: rgba(255, 255, 255, 0.52);
+  background: rgba(248, 250, 252, 0.95);
 }
 
 html.dark .app-table-row:hover {
-  background: rgba(15, 23, 42, 0.34);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.app-section-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.app-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.app-stat-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .app-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.app-stat-card {
+  border-radius: 1.4rem;
+  background: rgb(248 250 252 / 0.9);
+  padding: 1rem 1rem 0.95rem;
+  box-shadow:
+    0 10px 18px -16px rgba(15, 23, 42, 0.08),
+    0 2px 6px -6px rgba(15, 23, 42, 0.04);
+}
+
+html.dark .app-stat-card {
+  background: rgba(2, 6, 23, 0.32);
+  box-shadow:
+    0 12px 22px -18px rgba(2, 6, 23, 0.24),
+    0 3px 8px -8px rgba(2, 6, 23, 0.16);
+}
+
+.app-stat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+}
+
+.app-stat-value {
+  margin-top: 0.45rem;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: rgb(15 23 42);
+}
+
+.app-stat-note {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  color: rgb(100 116 139);
+}
+
+html.dark .app-stat-value {
+  color: rgb(255 255 255);
+}
+
+html.dark .app-stat-note,
+html.dark .app-stat-label {
+  color: rgb(148 163 184);
+}
+
+.app-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.app-toolbar {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .app-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
 }
 
 .app-scrollbar::-webkit-scrollbar {

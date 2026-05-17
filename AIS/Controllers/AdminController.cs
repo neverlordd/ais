@@ -118,18 +118,18 @@ public class AdminController(
     }
 
     [HttpGet("/admin/shift-log")]
-    public async Task<IActionResult> ShiftLog(string? search, string period = "today", string? date = null)
+    public async Task<IActionResult> ShiftLog(string? search, string period = "today", string? date = null, string attendance = AdminAttendanceFilterOption.All)
     {
         var now = DateTime.Now;
-        var report = await BuildShiftLogReportAsync(search, period, date, now);
+        var report = await BuildShiftLogReportAsync(search, period, date, attendance, now);
         return View("History", report);
     }
 
     [HttpGet("/admin/shift-log/export")]
-    public async Task<IActionResult> ShiftLogExport(string? search, string period = "today", string? date = null, string mode = "rows")
+    public async Task<IActionResult> ShiftLogExport(string? search, string period = "today", string? date = null, string attendance = AdminAttendanceFilterOption.All, string mode = "rows")
     {
         var now = DateTime.Now;
-        var report = await BuildShiftLogReportAsync(search, period, date, now);
+        var report = await BuildShiftLogReportAsync(search, period, date, attendance, now);
         var exportMode = mode == "employees" ? "employees" : "rows";
         var csv = exportMode == "employees"
             ? BuildEmployeeSummaryCsv(report.Employees)
@@ -138,8 +138,14 @@ public class AdminController(
         var dateSuffix = !string.IsNullOrWhiteSpace(report.ExactDate)
             ? report.ExactDate
             : report.Period;
+        var attendanceSuffix = report.AttendanceFilter switch
+        {
+            AdminAttendanceFilterOption.Worked => "worked",
+            AdminAttendanceFilterOption.Absent => "absent",
+            _ => "all"
+        };
         var fileName = exportMode == "employees"
-            ? $"employees-{dateSuffix}.csv"
+            ? $"employees-{attendanceSuffix}-{dateSuffix}.csv"
             : $"shift-log-{dateSuffix}.csv";
 
         return File(new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv), "text/csv; charset=utf-8", fileName);
@@ -440,6 +446,13 @@ public class AdminController(
         _ => AdminStatusFilterOption.All
     };
 
+    private static string NormalizeAttendanceFilter(string? value) => value switch
+    {
+        AdminAttendanceFilterOption.Worked => AdminAttendanceFilterOption.Worked,
+        AdminAttendanceFilterOption.Absent => AdminAttendanceFilterOption.Absent,
+        _ => AdminAttendanceFilterOption.All
+    };
+
     private static string NormalizePeriod(string? period, bool includeAll, string defaultValue) => period switch
     {
         "today" => "today",
@@ -464,10 +477,11 @@ public class AdminController(
         return Math.Max(0, (int)Math.Floor((actualEnd - startTime).TotalMinutes));
     }
 
-    private async Task<AdminShiftLogViewModel> BuildShiftLogReportAsync(string? search, string period, string? date, DateTime now)
+    private async Task<AdminShiftLogViewModel> BuildShiftLogReportAsync(string? search, string period, string? date, string attendance, DateTime now)
     {
         var normalizedSearch = string.IsNullOrWhiteSpace(search) ? null : search.Trim().ToLowerInvariant();
         var normalizedPeriod = NormalizePeriod(period, includeAll: true, defaultValue: "today");
+        var normalizedAttendance = NormalizeAttendanceFilter(attendance);
         var exactDate = ParseDate(date);
         var (rangeStart, rangeEnd, rangeLabel) = exactDate.HasValue
             ? (exactDate.Value.Date, exactDate.Value.Date.AddDays(1), exactDate.Value.ToString("dd.MM.yyyy"))
@@ -493,7 +507,6 @@ public class AdminController(
 
         var shifts = await shiftsQuery
             .OrderByDescending(shift => shift.StartTime)
-            .Take(500)
             .ToListAsync();
 
         var rows = shifts
@@ -511,34 +524,81 @@ public class AdminController(
             })
             .ToList();
 
-        var employees = rows
-            .GroupBy(row => new { row.UserId, row.FullName, row.Username, row.Role })
-            .Select(group => new AdminShiftLogEmployeeSummaryViewModel
+        var usersQuery = _dbContext.Users
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (normalizedSearch is not null)
+        {
+            usersQuery = usersQuery.Where(user =>
+                user.FullName.ToLower().Contains(normalizedSearch)
+                || user.Username.ToLower().Contains(normalizedSearch));
+        }
+
+        var users = await usersQuery
+            .OrderBy(user => user.FullName)
+            .ToListAsync();
+
+        var rowsByUserId = rows
+            .GroupBy(row => row.UserId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        var employees = users
+            .Select(user =>
             {
-                UserId = group.Key.UserId,
-                FullName = group.Key.FullName,
-                Username = group.Key.Username,
-                Role = group.Key.Role,
-                ShiftsCount = group.Count(),
-                WorkedMinutes = group.Sum(item => item.DurationMinutes),
-                FirstStartTime = group.Min(item => item.StartTime),
-                LastEndTime = group.Where(item => item.EndTime.HasValue).Max(item => item.EndTime),
-                HasActiveShift = group.Any(item => item.IsActive)
+                rowsByUserId.TryGetValue(user.Id, out var employeeRows);
+                employeeRows ??= [];
+
+                return new AdminShiftLogEmployeeSummaryViewModel
+                {
+                    UserId = user.Id,
+                    FullName = user.FullName,
+                    Username = user.Username,
+                    Role = user.Role,
+                    ShiftsCount = employeeRows.Count,
+                    WorkedMinutes = employeeRows.Sum(item => item.DurationMinutes),
+                    FirstStartTime = employeeRows.Count > 0 ? employeeRows.Min(item => item.StartTime) : null,
+                    LastEndTime = employeeRows.Where(item => item.EndTime.HasValue).Max(item => item.EndTime),
+                    HasActiveShift = employeeRows.Any(item => item.IsActive),
+                    WasOnShiftInPeriod = employeeRows.Count > 0
+                };
             })
-            .OrderBy(item => item.FullName)
             .ToList();
+
+        var employeesWorkedCount = employees.Count(item => item.WasOnShiftInPeriod);
+        var employeesAbsentCount = employees.Count - employeesWorkedCount;
+
+        employees = employees
+            .Where(item => normalizedAttendance switch
+            {
+                AdminAttendanceFilterOption.Worked => item.WasOnShiftInPeriod,
+                AdminAttendanceFilterOption.Absent => !item.WasOnShiftInPeriod,
+                _ => true
+            })
+            .ToList();
+
+        if (normalizedAttendance != AdminAttendanceFilterOption.All)
+        {
+            var employeeIds = employees.Select(item => item.UserId).ToHashSet();
+            rows = rows
+                .Where(item => employeeIds.Contains(item.UserId))
+                .ToList();
+        }
 
         return new AdminShiftLogViewModel
         {
             SearchQuery = search?.Trim() ?? string.Empty,
             Period = normalizedPeriod,
             ExactDate = exactDate?.ToString("yyyy-MM-dd") ?? string.Empty,
+            AttendanceFilter = normalizedAttendance,
             RangeLabel = rangeLabel,
             TotalRecords = rows.Count,
             ActiveRecords = rows.Count(item => item.IsActive),
-            UniqueEmployees = employees.Count,
+            EmployeesInScope = employees.Count,
+            EmployeesWorkedCount = employeesWorkedCount,
+            EmployeesAbsentCount = employeesAbsentCount,
             TotalWorkedMinutes = rows.Sum(item => item.DurationMinutes),
-            Employees = employees,
+            Employees = employees.OrderBy(item => item.FullName).ToList(),
             Rows = rows
         };
     }
@@ -579,7 +639,7 @@ public class AdminController(
     private static string BuildEmployeeSummaryCsv(IReadOnlyCollection<AdminShiftLogEmployeeSummaryViewModel> employees)
     {
         var builder = new StringBuilder();
-        builder.AppendLine("Сотрудник;Логин;Роль;Смен;Минуты;Длительность;Первый приход;Последний уход;Активная смена");
+        builder.AppendLine("Сотрудник;Логин;Роль;Статус за период;Смен;Минуты;Длительность;Первый приход;Последний уход;Активная смена");
 
         foreach (var employee in employees)
         {
@@ -587,6 +647,7 @@ public class AdminController(
                 EscapeCsv(employee.FullName),
                 EscapeCsv(employee.Username),
                 EscapeCsv(employee.Role.GetDisplayName()),
+                EscapeCsv(employee.WasOnShiftInPeriod ? "Был на смене" : "Не был на смене"),
                 employee.ShiftsCount.ToString(),
                 employee.WorkedMinutes.ToString(),
                 EscapeCsv(FormatDuration(employee.WorkedMinutes)),

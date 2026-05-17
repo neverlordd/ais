@@ -21,4 +21,6 @@ public class AdminShiftLogEmployeeSummaryViewModel
     public DateTime? LastEndTime { get; set; }
 
     public bool HasActiveShift { get; set; }
+
+    public bool WasOnShiftInPeriod { get; set; }
 }
