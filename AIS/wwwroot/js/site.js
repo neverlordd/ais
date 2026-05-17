@@ -158,14 +158,43 @@ function setupLiveClocks() {
 }
 
 function setupAlertAutoHide() {
-    var alert = document.querySelector("[data-alert]");
-    if (!alert) {
+    var payload = document.getElementById("app-toast-payload");
+    if (!payload) {
         return;
     }
+
+    var message = payload.getAttribute("data-toast-message");
+    var type = payload.getAttribute("data-toast-type") || "success";
+
+    if (!message) {
+        return;
+    }
+
+    var stack = document.createElement("div");
+    stack.className = "app-toast-stack";
+
+    var alert = document.createElement("div");
+    var typeClass = "border-emerald-200 bg-emerald-50/95 text-emerald-700 dark:border-emerald-950 dark:bg-emerald-950/60 dark:text-emerald-200";
+
+    if (type === "error") {
+        typeClass = "border-rose-200 bg-rose-50/95 text-rose-700 dark:border-rose-950 dark:bg-rose-950/60 dark:text-rose-200";
+    } else if (type === "warning") {
+        typeClass = "border-amber-200 bg-amber-50/95 text-amber-700 dark:border-amber-950 dark:bg-amber-950/60 dark:text-amber-200";
+    }
+
+    alert.className = "app-toast transform rounded-2xl px-4 py-3 text-sm font-medium shadow-soft transition duration-300 " + typeClass;
+    alert.setAttribute("data-alert", "");
+    alert.textContent = message;
+    stack.appendChild(alert);
+    document.body.appendChild(stack);
 
     window.setTimeout(function () {
         alert.classList.add("opacity-0");
         alert.classList.add("-translate-y-1");
+
+        window.setTimeout(function () {
+            stack.remove();
+        }, 350);
     }, 4500);
 }
 
@@ -178,21 +207,47 @@ function setupMobileMenu() {
         return;
     }
 
-    toggleButton.onclick = function () {
-        var isHidden = menu.classList.contains("hidden");
-
-        if (isHidden) {
-            menu.classList.remove("hidden");
-        } else {
-            menu.classList.add("hidden");
-        }
-
-        toggleButton.setAttribute("aria-expanded", isHidden ? "true" : "false");
+    function setMenuState(isOpen) {
+        menu.classList.toggle("hidden", !isOpen);
+        toggleButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
 
         if (icon) {
-            icon.textContent = isHidden ? "✕" : "☰";
+            icon.textContent = isOpen ? "✕" : "☰";
         }
+    }
+
+    toggleButton.onclick = function () {
+        setMenuState(menu.classList.contains("hidden"));
     };
+
+    document.addEventListener("click", function (event) {
+        if (menu.classList.contains("hidden")) {
+            return;
+        }
+
+        var target = event.target;
+        if (!(target instanceof Node)) {
+            return;
+        }
+
+        if (menu.contains(target) || toggleButton.contains(target)) {
+            return;
+        }
+
+        setMenuState(false);
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            setMenuState(false);
+        }
+    });
+
+    window.addEventListener("resize", function () {
+        if (window.innerWidth >= 1024) {
+            setMenuState(false);
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", function () {

@@ -11,71 +11,73 @@
     }
 }
 
-<div class="space-y-6">
+<div class="app-page">
     <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Администрирование</p>
-                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Сотрудники</h1>
+        <div class="app-section-card">
+            <div class="app-toolbar">
+                <div>
+                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Администрирование</p>
+                    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">Сотрудники</h1>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <a asp-action="Create" class="app-button app-button-primary min-h-12 rounded-[1.25rem] px-5 text-sm font-semibold">
+                        Добавить сотрудника
+                    </a>
+                </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-                <a asp-action="Create" class="app-button app-button-primary min-h-12 rounded-[1.25rem] px-5 text-sm font-semibold">
-                    Добавить сотрудника
-                </a>
+            <div class="app-meta-row text-sm text-slate-500 dark:text-slate-400">
+                <span class="app-inline-meta-pill">Всего: @Model.TotalEmployees</span>
+                <span class="app-inline-meta-pill">На смене: @Model.ActiveEmployees</span>
+                <span class="app-inline-meta-pill">Показано: @Model.FilteredEmployeesCount</span>
+                @if (Model.LongRunningShiftsCount > 0)
+                {
+                    <span class="app-inline-meta-pill">Требуют внимания: @Model.LongRunningShiftsCount</span>
+                }
             </div>
+
+            <form method="get" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem_auto] lg:items-end">
+                <div class="app-field">
+                    <label for="search" class="app-label">Поиск</label>
+                    <input id="search" name="search" value="@Model.SearchQuery" class="app-input" placeholder="ФИО или логин" />
+                </div>
+
+                <div class="app-field">
+                    <label for="status" class="app-label">Фильтр</label>
+                    <select id="status" name="status" class="app-select">
+                        <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.All" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.All)">Все сотрудники</option>
+                        <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.OnShift" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.OnShift)">На смене</option>
+                        <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.OffShift" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.OffShift)">Вне смены</option>
+                        <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.Admins" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.Admins)">Только администраторы</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="app-button app-button-primary min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">
+                        Применить
+                    </button>
+                    <a asp-action="Index" class="app-button app-button-ghost min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">
+                        Сбросить
+                    </a>
+                </div>
+            </form>
         </div>
-
-        <div class="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-            <span class="app-inline-meta-pill">Всего: @Model.TotalEmployees</span>
-            <span class="app-inline-meta-pill">На смене: @Model.ActiveEmployees</span>
-            <span class="app-inline-meta-pill">Показано: @Model.FilteredEmployeesCount</span>
-            @if (Model.LongRunningShiftsCount > 0)
-            {
-                <span class="app-inline-meta-pill">Требуют внимания: @Model.LongRunningShiftsCount</span>
-            }
-        </div>
-    </section>
-
-    <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <form method="get" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem_auto] lg:items-end">
-            <div>
-                <label for="search" class="text-sm font-medium text-slate-600 dark:text-slate-300">Поиск</label>
-                <input id="search" name="search" value="@Model.SearchQuery" class="mt-2 w-full rounded-[1.15rem] border-0 bg-slate-100/80 px-4 py-3 text-slate-950 shadow-none ring-1 ring-slate-950/6 transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-brand-500 dark:bg-slate-900/80 dark:text-white dark:ring-white/10 dark:focus:bg-slate-900" placeholder="ФИО или логин" />
-            </div>
-
-            <div>
-                <label for="status" class="text-sm font-medium text-slate-600 dark:text-slate-300">Фильтр</label>
-                <select id="status" name="status" class="mt-2 w-full rounded-[1.15rem] border-0 bg-slate-100/80 px-4 py-3 text-slate-950 shadow-none ring-1 ring-slate-950/6 transition focus:bg-white focus:ring-2 focus:ring-brand-500 dark:bg-slate-900/80 dark:text-white dark:ring-white/10 dark:focus:bg-slate-900">
-                    <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.All" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.All)">Все сотрудники</option>
-                    <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.OnShift" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.OnShift)">На смене</option>
-                    <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.OffShift" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.OffShift)">Вне смены</option>
-                    <option value="@AIS.ViewModels.Admin.AdminStatusFilterOption.Admins" selected="@(Model.StatusFilter == AIS.ViewModels.Admin.AdminStatusFilterOption.Admins)">Только администраторы</option>
-                </select>
-            </div>
-
-            <div class="flex gap-2">
-                <button type="submit" class="app-button app-button-primary min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">
-                    Применить
-                </button>
-                <a asp-action="Index" class="app-button app-button-ghost min-h-12 rounded-[1.15rem] px-5 text-sm font-semibold">
-                    Сбросить
-                </a>
-            </div>
-        </form>
     </section>
 
     <section class="space-y-4">
         @if (!Model.Employees.Any())
         {
-            <div class="app-surface rounded-[2rem] px-5 py-10 text-center sm:px-6">
-                <p class="text-lg font-semibold text-slate-950 dark:text-white">Совпадений не найдено</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Измените строку поиска или сбросьте фильтр.</p>
+            <div class="app-surface rounded-[2rem] px-5 py-6 sm:px-6">
+                <div class="app-empty-state">
+                    <p class="app-empty-state-title">Совпадений нет</p>
+                    <p class="app-empty-state-text">Попробуйте другой запрос или сбросьте фильтр.</p>
+                </div>
             </div>
         }
         else
         {
-            <div class="grid gap-4 xl:hidden">
+            <div class="grid gap-6 xl:hidden">
                 @foreach (var employee in Model.Employees)
                 {
                     <article class="app-surface rounded-[1.75rem] px-5 py-5 sm:px-6">
@@ -116,7 +118,7 @@
                                 Последняя: <span class="font-medium text-slate-900 dark:text-slate-100">@(employee.LastShiftStartTime?.ToString("dd.MM HH:mm") ?? "нет данных")</span>
                             </div>
 
-                            <div class="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-[8.5rem_7rem_7rem]">
+                            <div class="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-[9rem_7rem_7rem]">
                                 @if (employee.IsOnShift)
                                 {
                                     <form asp-action="EndShift" asp-route-id="@employee.Id" method="post" class="m-0">
@@ -197,7 +199,7 @@
                                             </p>
                                         </td>
                                         <td class="px-6 py-5">
-                                            <div class="grid justify-end gap-2 sm:grid-cols-[8.5rem_7rem_7rem]">
+                                            <div class="grid justify-end gap-2 sm:grid-cols-[9rem_7rem_7rem]">
                                                 @if (employee.IsOnShift)
                                                 {
                                                     <form asp-action="EndShift" asp-route-id="@employee.Id" method="post" class="m-0">

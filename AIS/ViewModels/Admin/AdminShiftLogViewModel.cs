@@ -8,13 +8,19 @@ public class AdminShiftLogViewModel
 
     public string ExactDate { get; set; } = string.Empty;
 
+    public string AttendanceFilter { get; set; } = AdminAttendanceFilterOption.All;
+
     public string RangeLabel { get; set; } = string.Empty;
 
     public int TotalRecords { get; set; }
 
     public int ActiveRecords { get; set; }
 
-    public int UniqueEmployees { get; set; }
+    public int EmployeesInScope { get; set; }
+
+    public int EmployeesWorkedCount { get; set; }
+
+    public int EmployeesAbsentCount { get; set; }
 
     public int TotalWorkedMinutes { get; set; }
 
