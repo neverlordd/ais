@@ -565,6 +565,7 @@ public class AdminController(
             })
             .ToList();
 
+        var employeesMatchedCount = employees.Count;
         var employeesWorkedCount = employees.Count(item => item.WasOnShiftInPeriod);
         var employeesAbsentCount = employees.Count - employeesWorkedCount;
 
@@ -594,6 +595,7 @@ public class AdminController(
             RangeLabel = rangeLabel,
             TotalRecords = rows.Count,
             ActiveRecords = rows.Count(item => item.IsActive),
+            EmployeesMatchedCount = employeesMatchedCount,
             EmployeesInScope = employees.Count,
             EmployeesWorkedCount = employeesWorkedCount,
             EmployeesAbsentCount = employeesAbsentCount,

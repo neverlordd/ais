@@ -87,34 +87,35 @@
                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">@employee.Username · @employee.Role.GetDisplayName()</p>
                             </div>
 
-                            <span class="app-status-pill @(employee.NeedsAttention ? "app-status-pill-warning" : employee.IsOnShift ? "app-status-pill-active" : "app-status-pill-idle")">
+                            <span class="app-status-pill app-status-pill-fixed @(employee.NeedsAttention ? "app-status-pill-warning" : employee.IsOnShift ? "app-status-pill-active" : "app-status-pill-idle")">
                                 @(employee.NeedsAttention ? "Долго на смене" : employee.IsOnShift ? "На смене" : "Вне смены")
                             </span>
                         </div>
 
                         <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                            <div class="app-muted-surface rounded-[1.25rem] px-4 py-3">
+                            <div class="app-muted-surface app-admin-stat-card rounded-[1.25rem] px-4 py-3">
                                 <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Текущая смена</p>
                                 @if (employee.IsOnShift && employee.ActiveShiftStartTime.HasValue)
                                 {
-                                    <p data-shift-timer data-shift-start-unix="@(new DateTimeOffset(employee.ActiveShiftStartTime.Value).ToUnixTimeSeconds())" class="mt-2 font-mono text-xl font-semibold tracking-tight text-slate-950 dark:text-white">00:00:00</p>
-                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">С @employee.ActiveShiftStartTime.Value.ToString("HH:mm")</p>
+                                    <p data-shift-timer data-shift-start-unix="@(new DateTimeOffset(employee.ActiveShiftStartTime.Value).ToUnixTimeSeconds())" class="app-admin-metric-primary mt-2 font-mono text-xl font-semibold tracking-tight text-slate-950 dark:text-white">00:00:00</p>
+                                    <p class="app-admin-metric-secondary mt-1 text-sm text-slate-500 dark:text-slate-400">С @employee.ActiveShiftStartTime.Value.ToString("HH:mm")</p>
                                 }
                                 else
                                 {
-                                    <p class="mt-2 text-base font-semibold text-slate-400 dark:text-slate-500">—</p>
+                                    <p class="app-admin-metric-primary mt-2 text-base font-semibold text-slate-400 dark:text-slate-500">—</p>
+                                    <p class="app-admin-metric-secondary mt-1 text-sm text-transparent">—</p>
                                 }
                             </div>
 
-                            <div class="app-muted-surface rounded-[1.25rem] px-4 py-3">
+                            <div class="app-muted-surface app-admin-stat-card rounded-[1.25rem] px-4 py-3">
                                 <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Сегодня</p>
-                                <p class="mt-2 text-xl font-semibold tracking-tight text-slate-950 dark:text-white">@FormatDuration(employee.WorkedMinutesToday)</p>
-                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Отметок: @employee.ShiftsTodayCount</p>
+                                <p class="app-admin-metric-primary mt-2 text-xl font-semibold tracking-tight text-slate-950 dark:text-white">@FormatDuration(employee.WorkedMinutesToday)</p>
+                                <p class="app-admin-metric-secondary mt-1 text-sm text-slate-500 dark:text-slate-400">Отметок: @employee.ShiftsTodayCount</p>
                             </div>
                         </div>
 
                         <div class="mt-4 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-                            <div class="text-slate-500 dark:text-slate-400">
+                            <div class="app-admin-last-meta text-slate-500 dark:text-slate-400">
                                 Последняя: <span class="font-medium text-slate-900 dark:text-slate-100">@(employee.LastShiftStartTime?.ToString("dd.MM HH:mm") ?? "нет данных")</span>
                             </div>
 
@@ -123,7 +124,7 @@
                                 {
                                     <form asp-action="EndShift" asp-route-id="@employee.Id" method="post" class="m-0">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="app-button app-button-danger min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                        <button type="submit" class="app-button app-button-danger app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                             Завершить
                                         </button>
                                     </form>
@@ -132,16 +133,16 @@
                                 {
                                     <form asp-action="StartShift" asp-route-id="@employee.Id" method="post" class="m-0">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="app-button app-button-primary min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                        <button type="submit" class="app-button app-button-primary app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                             Начать
                                         </button>
                                     </form>
                                 }
 
-                                <a asp-action="Edit" asp-route-id="@employee.Id" class="app-button app-button-ghost min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                <a asp-action="Edit" asp-route-id="@employee.Id" class="app-button app-button-ghost app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                     Изменить
                                 </a>
-                                <a asp-action="Delete" asp-route-id="@employee.Id" class="app-button app-button-danger-soft min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                <a asp-action="Delete" asp-route-id="@employee.Id" class="app-button app-button-danger-soft app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                     Удалить
                                 </a>
                             </div>
@@ -153,7 +154,15 @@
             <div class="hidden overflow-hidden rounded-[2rem] xl:block">
                 <div class="app-surface overflow-hidden p-0">
                     <div class="app-scrollbar overflow-x-auto">
-                        <table class="min-w-full">
+                        <table class="min-w-full table-fixed">
+                            <colgroup>
+                                <col class="w-[17%]" />
+                                <col class="w-[13%]" />
+                                <col class="w-[10%]" />
+                                <col class="w-[12%]" />
+                                <col class="w-[14%]" />
+                                <col class="w-[34%]" />
+                            </colgroup>
                             <thead>
                                 <tr class="border-b border-slate-200/80 text-left text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800 dark:text-slate-500">
                                     <th class="px-6 py-4">Сотрудник</th>
@@ -168,43 +177,50 @@
                                 @foreach (var employee in Model.Employees)
                                 {
                                     <tr class="app-table-row">
-                                        <td class="px-6 py-5">
+                                        <td class="px-6 py-5 align-middle">
                                             <p class="font-semibold text-slate-950 dark:text-white">@employee.FullName</p>
                                             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">@employee.Username · @employee.Role.GetDisplayName()</p>
                                         </td>
-                                        <td class="px-6 py-5">
-                                            <span class="app-status-pill @(employee.NeedsAttention ? "app-status-pill-warning" : employee.IsOnShift ? "app-status-pill-active" : "app-status-pill-idle")">
+                                        <td class="px-6 py-5 align-middle">
+                                            <span class="app-status-pill app-status-pill-fixed @(employee.NeedsAttention ? "app-status-pill-warning" : employee.IsOnShift ? "app-status-pill-active" : "app-status-pill-idle")">
                                                 @(employee.NeedsAttention ? "Долго на смене" : employee.IsOnShift ? "На смене" : "Вне смены")
                                             </span>
                                         </td>
-                                        <td class="px-6 py-5">
-                                            <p class="font-semibold text-slate-950 dark:text-white">@FormatDuration(employee.WorkedMinutesToday)</p>
-                                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">@employee.ShiftsTodayCount смен</p>
+                                        <td class="px-6 py-5 align-middle">
+                                            <div class="app-admin-cell-stack">
+                                                <p class="app-admin-cell-primary font-semibold text-slate-950 dark:text-white">@FormatDuration(employee.WorkedMinutesToday)</p>
+                                                <p class="app-admin-cell-secondary mt-1 text-xs text-slate-500 dark:text-slate-400">@employee.ShiftsTodayCount смен</p>
+                                            </div>
                                         </td>
-                                        <td class="px-6 py-5">
+                                        <td class="px-6 py-5 align-middle">
+                                            <div class="app-admin-cell-stack">
                                             @if (employee.IsOnShift && employee.ActiveShiftStartTime.HasValue)
                                             {
-                                                <p data-shift-timer data-shift-start-unix="@(new DateTimeOffset(employee.ActiveShiftStartTime.Value).ToUnixTimeSeconds())" class="font-mono text-lg font-semibold tracking-tight text-slate-950 dark:text-white">00:00:00</p>
-                                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">С @employee.ActiveShiftStartTime.Value.ToString("HH:mm")</p>
+                                                <p data-shift-timer data-shift-start-unix="@(new DateTimeOffset(employee.ActiveShiftStartTime.Value).ToUnixTimeSeconds())" class="app-admin-cell-primary font-mono text-lg font-semibold tracking-tight text-slate-950 dark:text-white">00:00:00</p>
+                                                <p class="app-admin-cell-secondary mt-1 text-xs text-slate-500 dark:text-slate-400">С @employee.ActiveShiftStartTime.Value.ToString("HH:mm")</p>
                                             }
                                             else
                                             {
-                                                <span class="text-slate-400 dark:text-slate-500">—</span>
+                                                <p class="app-admin-cell-primary text-slate-400 dark:text-slate-500">—</p>
+                                                <p class="app-admin-cell-secondary mt-1 text-xs text-transparent">—</p>
                                             }
+                                            </div>
                                         </td>
-                                        <td class="px-6 py-5">
-                                            <p class="font-medium text-slate-900 dark:text-slate-100">@(employee.LastShiftStartTime?.ToString("dd.MM.yyyy HH:mm") ?? "Нет данных")</p>
-                                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                                @(employee.LastShiftEndTime.HasValue ? $"Завершена в {employee.LastShiftEndTime.Value:HH:mm}" : employee.IsOnShift ? "Смена активна" : "Окончание не зафиксировано")
-                                            </p>
+                                        <td class="px-6 py-5 align-middle">
+                                            <div class="app-admin-cell-stack">
+                                                <p class="app-admin-cell-primary font-medium text-slate-900 dark:text-slate-100">@(employee.LastShiftStartTime?.ToString("dd.MM.yyyy HH:mm") ?? "Нет данных")</p>
+                                                <p class="app-admin-cell-secondary mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                                    @(employee.LastShiftEndTime.HasValue ? $"Завершена в {employee.LastShiftEndTime.Value:HH:mm}" : employee.IsOnShift ? "Смена активна" : "Окончание не зафиксировано")
+                                                </p>
+                                            </div>
                                         </td>
-                                        <td class="px-6 py-5">
-                                            <div class="grid justify-end gap-2 sm:grid-cols-[9rem_7rem_7rem]">
+                                        <td class="px-6 py-5 align-middle">
+                                            <div class="app-admin-actions-grid">
                                                 @if (employee.IsOnShift)
                                                 {
                                                     <form asp-action="EndShift" asp-route-id="@employee.Id" method="post" class="m-0">
                                                         @Html.AntiForgeryToken()
-                                                        <button type="submit" class="app-button app-button-danger min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                                        <button type="submit" class="app-button app-button-danger app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                                             Завершить
                                                         </button>
                                                     </form>
@@ -213,16 +229,16 @@
                                                 {
                                                     <form asp-action="StartShift" asp-route-id="@employee.Id" method="post" class="m-0">
                                                         @Html.AntiForgeryToken()
-                                                        <button type="submit" class="app-button app-button-primary min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                                        <button type="submit" class="app-button app-button-primary app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                                             Начать
                                                         </button>
                                                     </form>
                                                 }
 
-                                                <a asp-action="Edit" asp-route-id="@employee.Id" class="app-button app-button-ghost min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                                <a asp-action="Edit" asp-route-id="@employee.Id" class="app-button app-button-ghost app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                                     Изменить
                                                 </a>
-                                                <a asp-action="Delete" asp-route-id="@employee.Id" class="app-button app-button-danger-soft min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
+                                                <a asp-action="Delete" asp-route-id="@employee.Id" class="app-button app-button-danger-soft app-admin-action-button min-h-10 w-full rounded-[1rem] px-4 text-xs font-semibold">
                                                     Удалить
                                                 </a>
                                             </div>

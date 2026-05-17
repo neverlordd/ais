@@ -2,6 +2,44 @@
 @{
     ViewData["Title"] = "Главная";
     var hasCompletedShift = Model.LatestShiftStartTimeToday.HasValue && Model.LatestShiftEndTimeToday.HasValue;
+    var stateTitle = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? "Смена активна"
+        : hasCompletedShift
+            ? "Последняя смена сегодня"
+            : "Смена";
+    var leftLabel = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? "Начало"
+        : hasCompletedShift
+            ? "Приход"
+            : "Статус";
+    var leftValue = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? Model.ActiveShiftStartTime.Value.ToString("HH:mm")
+        : hasCompletedShift
+            ? Model.LatestShiftStartTimeToday!.Value.ToString("HH:mm")
+            : "Ожидание";
+    var rightLabel = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? "Продолжительность"
+        : hasCompletedShift
+            ? "Уход"
+            : "Готово";
+    var rightValue = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? null
+        : hasCompletedShift
+            ? Model.LatestShiftEndTimeToday!.Value.ToString("HH:mm")
+            : "—";
+    var helperText = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? $"Смена началась в {Model.ActiveShiftStartTime.Value:HH:mm}"
+        : hasCompletedShift
+            ? "Все отметки за сегодня завершены"
+            : "Можно начать новую смену";
+    var actionLabel = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? "Завершить смену"
+        : hasCompletedShift
+            ? "Начать новую смену"
+            : "Начать смену";
+    var actionClass = Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue
+        ? "app-button app-button-danger min-h-14 w-full justify-center rounded-[1.25rem] px-5 text-sm font-semibold"
+        : "app-button app-button-primary min-h-14 w-full justify-center rounded-[1.25rem] px-5 text-sm font-semibold";
 
     static string FormatDuration(int totalMinutes)
     {
@@ -12,124 +50,68 @@
     }
 }
 
-<div class="mx-auto max-w-5xl app-page">
+<div class="app-page">
     <section class="app-surface rounded-[2rem] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
         <div class="flex flex-col gap-6">
             <div class="min-w-0">
                 <p class="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Рабочее место</p>
                 <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">@Model.FullName</h1>
-                <div class="app-meta-row mt-4 text-sm">
+                <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
                     <span class="app-status-pill @(Model.HasActiveShift ? "app-status-pill-active" : "app-status-pill-idle")">
                         @(Model.HasActiveShift ? "На смене" : "Вне смены")
                     </span>
-                    <span class="app-inline-meta-pill">Сегодня: @FormatDuration(Model.WorkedMinutesToday)</span>
-                    <span class="app-inline-meta-pill">Отметок: @Model.ShiftsTodayCount</span>
+                    <span>Сегодня: @FormatDuration(Model.WorkedMinutesToday)</span>
+                    <span>Отметок: @Model.ShiftsTodayCount</span>
+                    @if (Model.FirstShiftStartToday.HasValue)
+                    {
+                        <span>Первый вход: @Model.FirstShiftStartToday.Value.ToString("HH:mm")</span>
+                    }
                 </div>
             </div>
 
-            @if (Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue)
-            {
-                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-emerald-600 dark:text-emerald-300">Смена активна</p>
-                <div class="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_18rem] lg:items-end">
-                    <div class="space-y-4">
-                        <div>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">Начало</p>
-                            <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">@Model.ActiveShiftStartTime.Value.ToString("HH:mm")</p>
+            <div class="app-state-shell">
+                <div class="app-state-body">
+                    <p class="app-state-kicker @(Model.HasActiveShift ? "text-emerald-600 dark:text-emerald-300" : "text-slate-400 dark:text-slate-500")">@stateTitle</p>
+                    <div class="app-state-grid">
+                        <div class="app-state-metric">
+                            <p class="app-state-label">@leftLabel</p>
+                            <p class="app-state-value">@leftValue</p>
                         </div>
-                        <div>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">Продолжительность</p>
-                            <p data-shift-timer data-shift-start-unix="@(new DateTimeOffset(Model.ActiveShiftStartTime.Value).ToUnixTimeSeconds())" class="mt-1 font-mono text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                                00:00:00
-                            </p>
+                        <div class="app-state-metric">
+                            <p class="app-state-label">@rightLabel</p>
+                            @if (Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue)
+                            {
+                                <p data-shift-timer data-shift-start-unix="@(new DateTimeOffset(Model.ActiveShiftStartTime.Value).ToUnixTimeSeconds())" class="app-state-value app-state-value-mono">
+                                    00:00:00
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="app-state-value @(rightValue == "—" ? "text-slate-400 dark:text-slate-500" : string.Empty)">@rightValue</p>
+                            }
                         </div>
                     </div>
+                    <p class="app-state-note">@helperText</p>
+                </div>
 
-                    <div class="grid gap-4">
-                        <div class="app-stat-card">
-                            <p class="app-stat-label">Первый вход</p>
-                            <p class="app-stat-value">@(Model.FirstShiftStartToday?.ToString("HH:mm") ?? "—")</p>
-                            <p class="app-stat-note">Первая отметка за текущий день</p>
-                        </div>
-                        <form asp-action="EndShift" method="post" class="flex">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="app-button app-button-danger min-h-14 w-full justify-center rounded-[1.25rem] px-5 text-sm font-semibold">
-                                Завершить смену
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            }
-            else if (hasCompletedShift)
-            {
-                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Последняя смена сегодня</p>
-                <div class="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_18rem] lg:items-end">
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">Приход</p>
-                            <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">@Model.LatestShiftStartTimeToday!.Value.ToString("HH:mm")</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">Уход</p>
-                            <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">@Model.LatestShiftEndTimeToday!.Value.ToString("HH:mm")</p>
-                        </div>
-                    </div>
-
-                    <div class="grid gap-4">
-                        <div class="app-stat-card">
-                            <p class="app-stat-label">Первый вход</p>
-                            <p class="app-stat-value">@(Model.FirstShiftStartToday?.ToString("HH:mm") ?? "—")</p>
-                            <p class="app-stat-note">Все отметки за день уже завершены</p>
-                        </div>
-                        <form asp-action="StartShift" method="post" class="flex">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="app-button app-button-primary min-h-14 w-full justify-center rounded-[1.25rem] px-5 text-sm font-semibold">
-                                Начать новую смену
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <p class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Смена</p>
-                <div class="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_18rem] lg:items-end">
-                    <div>
-                        <p class="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Сегодня отметок нет</p>
-                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Запустите смену в начале работы.</p>
-                    </div>
-
-                    <div class="grid gap-4">
-                        <div class="app-stat-card">
-                            <p class="app-stat-label">Первый вход</p>
-                            <p class="app-stat-value">—</p>
-                            <p class="app-stat-note">Запись появится после начала смены</p>
-                        </div>
-                        <form asp-action="StartShift" method="post" class="flex">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="app-button app-button-primary min-h-14 w-full justify-center rounded-[1.25rem] px-5 text-sm font-semibold">
-                                Начать смену
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            }
-
-            <div class="app-stat-grid">
-                <div class="app-stat-card">
-                    <p class="app-stat-label">За сегодня</p>
-                    <p class="app-stat-value">@FormatDuration(Model.WorkedMinutesToday)</p>
-                    <p class="app-stat-note">Суммарное время за текущий день</p>
-                </div>
-                <div class="app-stat-card">
-                    <p class="app-stat-label">Первый вход</p>
-                    <p class="app-stat-value">@(Model.FirstShiftStartToday?.ToString("HH:mm") ?? "—")</p>
-                    <p class="app-stat-note">Первая отметка сегодня</p>
-                </div>
-                <div class="app-stat-card">
-                    <p class="app-stat-label">Отметки</p>
-                    <p class="app-stat-value">@Model.ShiftsTodayCount</p>
-                    <p class="app-stat-note">Количество запусков смены за день</p>
-                </div>
+                @if (Model.HasActiveShift && Model.ActiveShiftStartTime.HasValue)
+                {
+                    <form asp-action="EndShift" method="post" class="app-state-action">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="@actionClass">
+                            @actionLabel
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="StartShift" method="post" class="app-state-action">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="@actionClass">
+                            @actionLabel
+                        </button>
+                    </form>
+                }
             </div>
         </div>
     </section>

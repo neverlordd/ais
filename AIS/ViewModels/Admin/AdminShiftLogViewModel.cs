@@ -16,6 +16,8 @@ public class AdminShiftLogViewModel
 
     public int ActiveRecords { get; set; }
 
+    public int EmployeesMatchedCount { get; set; }
+
     public int EmployeesInScope { get; set; }
 
     public int EmployeesWorkedCount { get; set; }
